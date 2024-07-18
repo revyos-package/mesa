@@ -3,6 +3,7 @@
 #include "util/u_debug.h"
 #include "util/os_time.h"
 #include <mutex>
+#include <cstdlib>
 #include "lp_bld.h"
 #include "lp_bld_debug.h"
 #include "lp_bld_init.h"
@@ -130,6 +131,8 @@ DEBUG_GET_ONCE_FLAGS_OPTION(gallivm_debug, "GALLIVM_DEBUG", lp_bld_debug_flags, 
 namespace {
 
 class LPJit;
+
+void lpjit_exit();
 
 class LLVMEnsureMultithreaded {
 public:
@@ -300,11 +303,14 @@ private:
    LPJit(const LPJit&) = delete;
    LPJit& operator=(const LPJit&) = delete;
 
+   friend void lpjit_exit();
+
    static void init_native_targets();
    llvm::orc::JITTargetMachineBuilder create_jtdb();
 
    static void init_lpjit() {
       jit = new LPJit;
+      std::atexit(lpjit_exit);
    }
    static LPJit* jit;
 
@@ -322,6 +328,11 @@ private:
 };
 
 LPJit* LPJit::jit = NULL;
+
+void lpjit_exit()
+{
+   delete LPJit::jit;
+}
 
 LLVMErrorRef module_transform(void *Ctx, LLVMModuleRef mod) {
    int64_t time_begin = 0;
