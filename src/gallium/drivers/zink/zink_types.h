@@ -775,6 +775,7 @@ struct zink_shader_info {
    bool have_sparse;
    bool have_vulkan_memory_model;
    bool have_workgroup_memory_explicit_layout;
+   bool broken_arbitary_type_const;
    struct {
       uint8_t flush_denorms:3; // 16, 32, 64
       uint8_t preserve_denorms:3; // 16, 32, 64
@@ -1563,6 +1564,7 @@ struct zink_screen {
       bool can_do_invalid_linear_modifier;
       unsigned z16_unscaled_bias;
       unsigned z24_unscaled_bias;
+      bool broken_const;
    } driver_workarounds;
 };
 

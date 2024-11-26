@@ -5383,6 +5383,7 @@ zink_shader_create(struct zink_screen *screen, struct nir_shader *nir)
 
    ret->sinfo.have_vulkan_memory_model = screen->info.have_KHR_vulkan_memory_model;
    ret->sinfo.have_workgroup_memory_explicit_layout = screen->info.have_KHR_workgroup_memory_explicit_layout;
+   ret->sinfo.broken_arbitary_type_const = screen->driver_workarounds.broken_const;
    if (screen->info.have_KHR_shader_float_controls) {
       if (screen->info.props12.shaderDenormFlushToZeroFloat16)
          ret->sinfo.float_controls.flush_denorms |= 0x1;
