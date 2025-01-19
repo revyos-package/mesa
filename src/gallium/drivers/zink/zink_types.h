@@ -1566,6 +1566,7 @@ struct zink_screen {
       unsigned z24_unscaled_bias;
       bool broken_const;
       bool broken_demote;
+      bool broken_submit;
    } driver_workarounds;
 };
 
