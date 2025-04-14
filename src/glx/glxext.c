@@ -885,7 +885,7 @@ __glXInitialize(Display * dpy)
    Bool glx_accel = !debug_get_bool_option("LIBGL_ALWAYS_SOFTWARE", false);
    const char *env = getenv("MESA_LOADER_DRIVER_OVERRIDE");
 
-   zink = env && !strcmp(env, "zink");
+   zink = !env || !strcmp(env, "zink");
    try_zink = False;
 
    dpyPriv->drawHash = __glxHashCreate();
