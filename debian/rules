@@ -65,6 +65,11 @@ else
   confflags_GALLIUM += -Dgallium-vdpau=enabled
   confflags_GALLIUM += -Dlmsensors=enabled
 
+  # Enable pvr for riscv64
+  ifneq (,$(filter $(DEB_HOST_ARCH), riscv64))
+	GALLIUM_DRIVERS += pvr
+  endif
+
   # Freedreno requires arm in addition
   ifneq (,$(filter arm arm64,$(DEB_HOST_ARCH_CPU)))
 	GALLIUM_DRIVERS += freedreno
@@ -108,8 +113,8 @@ else
 
 	# Only enable amd on riscv64, swrast needs CPU JIT support which doesn't work properly yet
 	ifneq (,$(filter $(DEB_HOST_ARCH), riscv64))
-		VULKAN_DRIVERS += amd
-		confflags_GALLIUM += -Ddraw-use-llvm=false
+		VULKAN_DRIVERS += amd pvr
+		confflags_GALLIUM += -Ddraw-use-llvm=false -Dgallium-pvr-alias=vs_drm
 	else
 	  # drop virtio from armel, it doesn't build
 	  ifneq (,$(filter $(DEB_HOST_ARCH), armel))
