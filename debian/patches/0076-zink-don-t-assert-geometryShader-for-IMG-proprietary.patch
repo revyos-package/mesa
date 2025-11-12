@@ -1,0 +1,37 @@
+From 19b0b78baecd529a3aeee99b2bb93da6dcb8a260 Mon Sep 17 00:00:00 2001
+From: Icenowy Zheng <uwu@icenowy.me>
+Date: Sat, 30 Nov 2024 17:11:09 +0800
+Subject: [PATCH 76/84] zink: don't assert geometryShader for IMG proprietary
+ driver
+
+The proprietary driver for Imagination Rogue-architecture GPUs does not
+come with geometryShader support.
+
+Change the assert for it to another if condition.
+
+Signed-off-by: Icenowy Zheng <uwu@icenowy.me>
+Signed-off-by: Han Gao <gaohan@iscas.ac.cn>
+---
+ src/gallium/drivers/zink/zink_screen.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/gallium/drivers/zink/zink_screen.c b/src/gallium/drivers/zink/zink_screen.c
+index 160f394f9ad..ff80f99bfac 100644
+--- a/src/gallium/drivers/zink/zink_screen.c
++++ b/src/gallium/drivers/zink/zink_screen.c
+@@ -2798,10 +2798,9 @@ init_driver_workarounds(struct zink_screen *screen)
+    }
+ 
+    if (screen->info.driver_props.driverID ==
+-       VK_DRIVER_ID_IMAGINATION_PROPRIETARY) {
+-      assert(screen->info.feats.features.geometryShader);
++       VK_DRIVER_ID_IMAGINATION_PROPRIETARY &&
++       screen->info.feats.features.geometryShader)
+       screen->driver_workarounds.no_linesmooth = true;
+-   }
+ 
+    /* This is a workarround for the lack of
+     * gl_PointSize + glPolygonMode(..., GL_LINE), in the imagination
+-- 
+2.47.3
+

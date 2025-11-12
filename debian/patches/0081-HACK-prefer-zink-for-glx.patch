@@ -1,0 +1,27 @@
+From bb3f33ea6f7e1ab606fff7c6d7eb0d24551d82a0 Mon Sep 17 00:00:00 2001
+From: Icenowy Zheng <uwu@icenowy.me>
+Date: Mon, 14 Apr 2025 15:01:20 +0800
+Subject: [PATCH 81/84] HACK: prefer zink for glx
+
+Signed-off-by: Icenowy Zheng <uwu@icenowy.me>
+Signed-off-by: Han Gao <gaohan@iscas.ac.cn>
+---
+ src/glx/glxext.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/glx/glxext.c b/src/glx/glxext.c
+index 72d19a14212..000a719838b 100644
+--- a/src/glx/glxext.c
++++ b/src/glx/glxext.c
+@@ -885,7 +885,7 @@ __glXInitialize(Display * dpy)
+    Bool glx_accel = !debug_get_bool_option("LIBGL_ALWAYS_SOFTWARE", false);
+    const char *env = getenv("MESA_LOADER_DRIVER_OVERRIDE");
+ 
+-   zink = env && !strcmp(env, "zink");
++   zink = !env || !strcmp(env, "zink");
+    try_zink = False;
+ 
+    dpyPriv->drawHash = __glxHashCreate();
+-- 
+2.47.3
+

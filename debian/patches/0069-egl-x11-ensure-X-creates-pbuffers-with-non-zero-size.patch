@@ -1,0 +1,37 @@
+From d701872fb67c8fe6b30ed3198b426b1747f41fc7 Mon Sep 17 00:00:00 2001
+From: Brendan King <Brendan.King@imgtec.com>
+Date: Tue, 11 Mar 2014 09:11:28 +0000
+Subject: [PATCH 69/84] egl/x11: ensure X creates pbuffers with non-zero size
+
+The X Server visuals specify a maximum PBuffer width and height of zero.
+When Mesa tries to allocate a zero size pixmap for the PBuffer, the request
+is ignored, causing the subsequent DRI2 get buffers request to fail.
+Patch the Mesa X11 EGL driver, so that when the pixmap backing the
+PBuffer is created, 1 is substitued for a width or height of 0.
+
+Signed-off-by: Randolph Sapp <rs@ti.com>
+---
+ src/egl/drivers/dri2/platform_x11.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/egl/drivers/dri2/platform_x11.c b/src/egl/drivers/dri2/platform_x11.c
+index a509c4ffed2..cc8bc19b2cd 100644
+--- a/src/egl/drivers/dri2/platform_x11.c
++++ b/src/egl/drivers/dri2/platform_x11.c
+@@ -295,9 +295,10 @@ dri2_x11_create_surface(_EGLDisplay *disp, EGLint type, _EGLConfig *conf,
+    dri2_surf->region = XCB_NONE;
+    if (type == EGL_PBUFFER_BIT) {
+       dri2_surf->drawable = xcb_generate_id(dri2_dpy->conn);
+-      xcb_create_pixmap(dri2_dpy->conn, conf->BufferSize, dri2_surf->drawable,
+-                        dri2_dpy->screen->root, dri2_surf->base.Width,
+-                        dri2_surf->base.Height);
++      xcb_create_pixmap(dri2_dpy->conn, conf->BufferSize,
++                        dri2_surf->drawable, dri2_dpy->screen->root,
++                        dri2_surf->base.Width == 0 ? 1 : dri2_surf->base.Width,
++                        dri2_surf->base.Height == 0 ? 1 : dri2_surf->base.Height);
+    } else {
+       STATIC_ASSERT(sizeof(uintptr_t) == sizeof(native_surface));
+       dri2_surf->drawable = (uintptr_t)native_surface;
+-- 
+2.47.3
+

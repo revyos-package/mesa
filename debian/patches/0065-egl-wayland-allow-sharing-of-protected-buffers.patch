@@ -1,0 +1,34 @@
+From facf192af3b27fdb6d3882672cb9872bec734c95 Mon Sep 17 00:00:00 2001
+From: Brendan King <Brendan.King@imgtec.com>
+Date: Thu, 11 Apr 2024 08:06:43 +0100
+Subject: [PATCH 65/84] egl/wayland: allow sharing of protected buffers
+
+Allow protected buffers to be shared between compatible GPUs.
+
+When the IMG Mesa patches are ported to the next major version of
+Mesa, this change should be merged with commit "dri2: add a driver
+compatibility check extension".
+
+Signed-off-by: Randolph Sapp <rs@ti.com>
+---
+ src/egl/drivers/dri2/platform_wayland.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/egl/drivers/dri2/platform_wayland.c b/src/egl/drivers/dri2/platform_wayland.c
+index 03d10326787..350d4eae0d9 100644
+--- a/src/egl/drivers/dri2/platform_wayland.c
++++ b/src/egl/drivers/dri2/platform_wayland.c
+@@ -1228,8 +1228,8 @@ get_back_bo(struct dri2_egl_surface *dri2_surf, bool allow_preserve,
+    use_flags = __DRI_IMAGE_USE_SHARE | __DRI_IMAGE_USE_BACKBUFFER;
+ 
+    if (dri2_surf->base.ProtectedContent) {
+-      /* Protected buffers can't be read from another GPU */
+-      if (dri2_dpy->fd_render_gpu != dri2_dpy->fd_display_gpu)
++      /* Protected buffers can't be read from an incompatible GPU */
++      if (!dri2_dpy->compat_gpus)
+          return -1;
+       use_flags |= __DRI_IMAGE_USE_PROTECTED;
+    }
+-- 
+2.47.3
+
