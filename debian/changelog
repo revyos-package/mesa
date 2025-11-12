@@ -1,3 +1,11 @@
+mesa (1:24.0.9-0revyos1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian: modify gbp.conf for revyos
+  * debian/rules: add pvr support
+
+ -- Han Gao <gaohan@iscas.ac.cn>  Wed, 12 Nov 2025 23:21:24 +0800
+
 mesa (24.0.8-1) unstable; urgency=medium
 
   * New upstream release.
