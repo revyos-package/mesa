@@ -1,3 +1,11 @@
+mesa (1:24.0.9-0revyos2) unstable; urgency=medium
+
+  * debian/patches: add llvmpipe support for riscv64
+  * debian/patches: add zink as default driver 
+  * debian/rules: enable llvmpipe on riscv64
+
+ -- Han Gao <gaohan@iscas.ac.cn>  Mon, 24 Nov 2025 01:36:08 +0800
+
 mesa (1:24.0.9-0revyos1) unstable; urgency=medium
 
   * New upstream release.
