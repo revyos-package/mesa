@@ -1,0 +1,204 @@
+From 1eafdfab4e4319f037e0082a1999d0f1684f144f Mon Sep 17 00:00:00 2001
+From: Brendan King <Brendan.King@imgtec.com>
+Date: Wed, 23 Mar 2016 13:14:44 +0000
+Subject: [PATCH 73/90] Add GL_IMG_uniform_buffer_object extension
+
+Signed-off-by: Randolph Sapp <rs@ti.com>
+---
+ .../gen/OES_IMG_uniform_buffer_object.xml     | 124 ++++++++++++++++++
+ src/mapi/glapi/gen/es_EXT.xml                 |   3 +
+ src/mapi/glapi/gen/static_data.py             |   1 +
+ src/mesa/main/uniforms.c                      |   8 ++
+ src/mesa/main/uniforms.h                      |   3 +
+ 5 files changed, 139 insertions(+)
+ create mode 100644 src/mapi/glapi/gen/OES_IMG_uniform_buffer_object.xml
+
+diff --git a/src/mapi/glapi/gen/OES_IMG_uniform_buffer_object.xml b/src/mapi/glapi/gen/OES_IMG_uniform_buffer_object.xml
+new file mode 100644
+index 00000000000..7269eaa100e
+--- /dev/null
++++ b/src/mapi/glapi/gen/OES_IMG_uniform_buffer_object.xml
+@@ -0,0 +1,124 @@
++<?xml version="1.0"?>
++<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
++
++<OpenGLAPI>
++
++<category name="GL_IMG_uniform_buffer_object" number="57">
++
++<enum name="UNIFORM_BUFFER_IMG" value="0x8A11" />
++<enum name="UNIFORM_BUFFER_BINDING_IMG" value="0x8A28" />
++<enum name="UNIFORM_BUFFER_START_IMG" value="0x8A29" />
++<enum name="UNIFORM_BUFFER_SIZE_IMG" value="0x8A2A" />
++<enum name="MAX_VERTEX_UNIFORM_BLOCKS_IMG" value="0x8A2B" />
++<enum name="MAX_GEOMETRY_UNIFORM_BLOCKS_IMG" value="0x8A2C" />
++<enum name="MAX_FRAGMENT_UNIFORM_BLOCKS_IMG" value="0x8A2D" />
++<enum name="MAX_COMBINED_UNIFORM_BLOCKS_IMG" value="0x8A2E" />
++<enum name="MAX_UNIFORM_BUFFER_BINDINGS_IMG" value="0x8A2F" />
++<enum name="MAX_UNIFORM_BLOCK_SIZE_IMG" value="0x8A30" />
++<enum name="MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS_IMG" value="0x8A31" />
++<enum name="MAX_COMBINED_GEOMETRY_UNIFORM_COMPONENTS_IMG" value="0x8A32" />
++<enum name="MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS_IMG" value="0x8A33" />
++<enum name="UNIFORM_BUFFER_OFFSET_ALIGNMENT_IMG" value="0x8A34" />
++<enum name="ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH_IMG" value="0x8A35" />
++<enum name="ACTIVE_UNIFORM_BLOCKS_IMG" value="0x8A36" />
++<enum name="UNIFORM_TYPE_IMG" value="0x8A37" />
++<enum name="UNIFORM_SIZE_IMG" value="0x8A38" />
++<enum name="UNIFORM_NAME_LENGTH_IMG" value="0x8A39" />
++<enum name="UNIFORM_BLOCK_INDEX_IMG" value="0x8A3A" />
++<enum name="UNIFORM_OFFSET_IMG" value="0x8A3B" />
++<enum name="UNIFORM_ARRAY_STRIDE_IMG" value="0x8A3C" />
++<enum name="UNIFORM_MATRIX_STRIDE_IMG" value="0x8A3D" />
++<enum name="UNIFORM_IS_ROW_MAJOR_IMG" value="0x8A3E" />
++<enum name="UNIFORM_BLOCK_BINDING_IMG" value="0x8A3F" />
++<enum name="UNIFORM_BLOCK_DATA_SIZE_IMG" value="0x8A40" />
++<enum name="UNFIROM_BLOCK_NAME_LENGTH_IMG" value="0x8A41" />
++<enum name="UNIFORM_BLOCK_ACTIVE_UNIFORMS_IMG" value="0x8A42" />
++<enum name="UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES_IMG" value="0x8A43" />
++<enum name="UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER_IMG" value="0x8A44" />
++<enum name="UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER_IMG" value="0x8A45" />
++<enum name="UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER_IMG" value="0x8A46" />
++<enum name="INVALID_INDEX_IMG" value="0xFFFFFFFF" />
++
++<function name="GetUniformIndicesIMG" static_dispatch="false" es2="2.0"
++          alias="GetUniformIndices">
++    <param name="program" type="GLuint" />
++    <param name="uniformCount" type="GLsizei" />
++    <param name="uniformNames" type="const GLchar * const *" />
++    <param name="uniformIndices" type="GLuint *" />
++</function>
++
++<function name="GetActiveUniformsivIMG" static_dispatch="false" es2="2.0"
++          alias="GetActiveUniformsiv">
++    <param name="program" type="GLuint" />
++    <param name="uniformCount" type="GLsizei" />
++    <param name="uniformIndices" type="const GLuint *" />
++    <param name="pname" type="GLenum" />
++    <param name="params" type="GLint *" />
++</function>
++
++<function name="GetActiveUniformNameIMG" static_dispatch="false" es2="2.0"
++          alias="GetActiveUniformName">
++    <param name="program" type="GLuint" />
++    <param name="uniformIndex" type="GLuint" />
++    <param name="bufSize" type="GLsizei" />
++    <param name="length" type="GLsizei *" />
++    <param name="uniformName" type="GLchar *" />
++</function>
++
++<function name="GetUniformBlockIndexIMG" static_dispatch="false" es2="2.0"
++          alias="GetUniformBlockIndex">
++    <return type="GLuint"/>
++    <param name="program" type="GLuint" />
++    <param name="uniformBlockName" type="const GLchar *" />
++</function>
++
++<function name="GetActiveUniformBlockivIMG" static_dispatch="false" es2="2.0"
++          alias="GetActiveUniformBlockiv">
++    <param name="program" type="GLuint" />
++    <param name="uniformBlockIndex" type="GLuint" />
++    <param name="pname" type="GLenum" />
++    <param name="params" type="GLint *" />
++</function>
++
++<function name="GetActiveUniformBlockNameIMG" static_dispatch="false" es2="2.0"
++          alias="GetActiveUniformBlockName">
++    <param name="program" type="GLuint" />
++    <param name="uniformBlockIndex" type="GLuint" />
++    <param name="bufSize" type="GLsizei" />
++    <param name="length" type="GLsizei *" />
++    <param name="uniformBlockName" type="GLchar *" />
++</function>
++
++<function name="UniformBlockBindingIMG" static_dispatch="false" es2="2.0"
++          alias="UniformBlockBinding">
++    <param name="program" type="GLuint" />
++    <param name="uniformBlockIndex" type="GLuint" />
++    <param name="uniformBlockBinding" type="GLuint" />
++</function>
++
++<function name="GetIntegeri_vIMG" static_dispatch="false" es2="2.0"
++          offset="assign">
++    <param name="target" type="GLenum"/>
++    <param name="index" type="GLuint"/>
++    <param name="data" type="GLint*" output="true"/>
++</function>
++
++<function name="BindBufferRangeIMG" static_dispatch="false" es2="2.0"
++          alias="BindBufferRange">
++    <param name="target" type="GLenum"/>
++    <param name="index" type="GLuint"/>
++    <param name="buffer" type="GLuint"/>
++    <param name="offset" type="GLintptr"/>
++    <param name="size" type="GLsizeiptr"/>
++</function>
++
++<function name="BindBufferBaseIMG" static_dispatch="false" es2="2.0"
++          alias="BindBufferBase">
++    <param name="target" type="GLenum"/>
++    <param name="index" type="GLuint"/>
++    <param name="buffer" type="GLuint"/>
++</function>
++
++</category>
++
++</OpenGLAPI>
+diff --git a/src/mapi/glapi/gen/es_EXT.xml b/src/mapi/glapi/gen/es_EXT.xml
+index 4a597124448..9730a7831f8 100644
+--- a/src/mapi/glapi/gen/es_EXT.xml
++++ b/src/mapi/glapi/gen/es_EXT.xml
+@@ -628,6 +628,9 @@
+     <enum name="MAX_TEXTURE_LOD_BIAS_EXT"                 value="0x84FD"/>
+ </category>
+ 
++<!-- 57. GL_IMG_uniform_buffer_object -->
++<xi:include href="OES_IMG_uniform_buffer_object.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
++
+ <!-- 64. GL_EXT_discard_framebuffer -->
+ 
+ <category name="GL_EXT_discard_framebuffer" number="64">
+diff --git a/src/mapi/glapi/gen/static_data.py b/src/mapi/glapi/gen/static_data.py
+index 3661095220f..2caec407c2d 100644
+--- a/src/mapi/glapi/gen/static_data.py
++++ b/src/mapi/glapi/gen/static_data.py
+@@ -1744,6 +1744,7 @@ offsets = {
+     "VertexAttribDivisorNV" : 1708,
+     "TexStorageAttribs2DEXT": 1709,
+     "TexStorageAttribs3DEXT": 1710,
++    "GetIntegeri_vIMG": 1711,
+ }
+ 
+ functions = [
+diff --git a/src/mesa/main/uniforms.c b/src/mesa/main/uniforms.c
+index 47a8a869ce6..e038b6474bf 100644
+--- a/src/mesa/main/uniforms.c
++++ b/src/mesa/main/uniforms.c
+@@ -2102,3 +2102,11 @@ _mesa_ProgramUniform4ui64vARB(GLuint program, GLint location,  GLsizei count, co
+                                       "glProgramUniform4ui64vARB");
+    _mesa_uniform(location, count, value, ctx, shProg, GLSL_TYPE_UINT64, 4);
+ }
++
++void GLAPIENTRY
++_mesa_GetIntegeri_vIMG(GLenum target, GLuint index, GLint* data)
++{
++    GET_CURRENT_CONTEXT(ctx);
++
++    _mesa_error(ctx, GL_INVALID_OPERATION, "glGetIntegeri_vIMG");
++}
+diff --git a/src/mesa/main/uniforms.h b/src/mesa/main/uniforms.h
+index 7c96a0736d3..55aa256b787 100644
+--- a/src/mesa/main/uniforms.h
++++ b/src/mesa/main/uniforms.h
+@@ -39,6 +39,9 @@ extern "C" {
+ struct gl_program;
+ struct _glapi_table;
+ 
++void GLAPIENTRY
++_mesa_GetIntegeri_vIMG(GLenum target, GLuint index, GLint* data);
++
+ void
+ _mesa_uniform(GLint location, GLsizei count, const GLvoid *values,
+               struct gl_context *, struct gl_shader_program *,
+-- 
+2.47.3
+

@@ -1,0 +1,57 @@
+From 09b130e9823d6689933b6997a608a7bd0d15507a Mon Sep 17 00:00:00 2001
+From: Icenowy Zheng <uwu@icenowy.me>
+Date: Wed, 17 Jul 2024 00:40:28 +0800
+Subject: [PATCH 03/90] gallivm: orcjit: use a mutex to protect symbol looking
+ up
+
+When a symbol is looked up for the first time, the associated function
+is built, and the building process seems to be not thread-safe.
+
+Use a mutex to protect the symbol looking up process, which should be
+serialized when the function is not built, and fast when the function is
+built.
+
+Signed-off-by: Icenowy Zheng <uwu@icenowy.me>
+Reviewed-by: Dave Airlie <airlied@redhat.com>
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/30217>
+(cherry picked from commit 7e3106fa6f881964f3a8cde3cfeb3105bca651da)
+Signed-off-by: Han Gao <gaohan@iscas.ac.cn>
+---
+ src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp b/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
+index 18d7d055d75..10dfbe351bd 100644
+--- a/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
++++ b/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
+@@ -2,6 +2,7 @@
+ #include "util/u_cpu_detect.h"
+ #include "util/u_debug.h"
+ #include "util/os_time.h"
++#include <mutex>
+ #include "lp_bld.h"
+ #include "lp_bld_debug.h"
+ #include "lp_bld_init.h"
+@@ -267,6 +268,10 @@ public:
+       using llvm::orc::ExecutorAddr;
+       JITDylib* JD = ::unwrap(jd);
+       auto func = ExitOnErr(LPJit::get_instance()->lljit->lookup(*JD, func_name));
++      LPJit* jit = get_instance();
++      jit->lookup_mutex.lock();
++      auto func = ExitOnErr(jit->lljit->lookup(*JD, func_name));
++      jit->lookup_mutex.unlock();
+ #if LLVM_VERSION_MAJOR >= 16
+       return func.toPtr<void *>();
+ #else
+@@ -307,6 +312,8 @@ private:
+    /* avoid name conflict */
+    unsigned jit_dylib_count;
+ 
++   std::mutex lookup_mutex;
++
+ #if DEBUG
+    /* map from module name to gallivm_state */
+    llvm::StringMap<gallivm_state *> gallivm_modules;
+-- 
+2.47.3
+

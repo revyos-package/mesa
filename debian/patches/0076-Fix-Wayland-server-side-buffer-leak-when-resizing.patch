@@ -1,0 +1,86 @@
+From fc97569531c132e8efcfad66e972ac2c5e3a90a4 Mon Sep 17 00:00:00 2001
+From: Brendan King <Brendan.King@imgtec.com>
+Date: Thu, 3 Nov 2016 08:42:00 +0000
+Subject: [PATCH 76/90] Fix Wayland server side buffer leak when resizing
+
+Wayland clients inform the server that a buffer should be destroyed
+by calling wl_buffer_destroy. When a surface is resized, the client
+calls wl_buffer_destroy via two paths:
+
+1. Via dri2_wl_release_buffers for each buffer that isn't locked.
+
+2. Via wl_buffer_release for locked buffers that were sent to the
+server via wl_surface_commit. When the server releases the buffer,
+wl_buffer_release is called, which in turn calls wl_buffer_destroy.
+
+Unfortunately, the current buffer selected for rendering
+(e.g. by dri2_wl_swap_buffers_with_damage) will be locked, but
+won't have been sent to the server yet, and so won't be handled
+by either of the above two paths, resulting in wl_buffer_destroy
+never being called.
+
+Add a "committed" flag to indicate that a buffer has been sent to
+the server, and check this instead of the locked flag to determine
+if wl_buffer_destroy should be called in dri2_wl_release_buffers.
+Locked buffers that have been sent to the server are still destroyed
+via wl_buffer_release.
+
+Signed-off-by: Randolph Sapp <rs@ti.com>
+---
+ src/egl/drivers/dri2/egl_dri2.h         | 1 +
+ src/egl/drivers/dri2/platform_wayland.c | 6 +++++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/egl/drivers/dri2/egl_dri2.h b/src/egl/drivers/dri2/egl_dri2.h
+index b63bdd6a70f..9d15392affa 100644
+--- a/src/egl/drivers/dri2/egl_dri2.h
++++ b/src/egl/drivers/dri2/egl_dri2.h
+@@ -462,6 +462,7 @@ struct dri2_egl_surface {
+ #endif
+       bool locked;
+       int age;
++      bool committed;
+ #ifdef HAVE_NULL_PLATFORM
+    } color_buffers[DRI2_SURFACE_NUM_COLOR_BUFFERS], *back, *current, front_buffer;
+ #else
+diff --git a/src/egl/drivers/dri2/platform_wayland.c b/src/egl/drivers/dri2/platform_wayland.c
+index 350d4eae0d9..ec7574bc0d4 100644
+--- a/src/egl/drivers/dri2/platform_wayland.c
++++ b/src/egl/drivers/dri2/platform_wayland.c
+@@ -357,6 +357,7 @@ wl_buffer_release(void *data, struct wl_buffer *buffer)
+    }
+ 
+    dri2_surf->color_buffers[i].locked = false;
++   dri2_surf->color_buffers[i].committed = false;
+ }
+ 
+ static const struct wl_buffer_listener wl_buffer_listener = {
+@@ -1042,7 +1043,8 @@ dri2_wl_release_buffers(struct dri2_egl_surface *dri2_surf,
+       }
+ 
+       if (dri2_surf->color_buffers[i].wl_buffer) {
+-         if (dri2_surf->color_buffers[i].locked) {
++         if (dri2_surf->color_buffers[i].locked &&
++             dri2_surf->color_buffers[i].committed) {
+             dri2_surf->color_buffers[i].wl_release = true;
+          } else {
+             wl_buffer_destroy(dri2_surf->color_buffers[i].wl_buffer);
+@@ -1860,6 +1862,7 @@ dri2_wl_swap_buffers_with_damage(_EGLDisplay *disp, _EGLSurface *draw,
+    }
+ 
+    wl_surface_commit(dri2_surf->wl_surface_wrapper);
++   dri2_surf->current->committed = true;
+ 
+    /* If we're not waiting for a frame callback then we'll at least throttle
+     * to a sync callback so that we always give a chance for the compositor to
+@@ -2778,6 +2781,7 @@ dri2_wl_swrast_commit_backbuffer(struct dri2_egl_surface *dri2_surf)
+ 
+    wl_surface_damage(dri2_surf->wl_surface_wrapper, 0, 0, INT32_MAX, INT32_MAX);
+    wl_surface_commit(dri2_surf->wl_surface_wrapper);
++   dri2_surf->current->committed = true;
+ 
+    /* If we're not waiting for a frame callback then we'll at least throttle
+     * to a sync callback so that we always give a chance for the compositor to
+-- 
+2.47.3
+

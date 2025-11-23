@@ -1,0 +1,71 @@
+From 8224d94cb1fe88f520ea273561b6d8f7a9724c20 Mon Sep 17 00:00:00 2001
+From: Icenowy Zheng <uwu@icenowy.me>
+Date: Thu, 18 Jul 2024 12:09:28 +0800
+Subject: [PATCH 05/90] gallivm: orcjit: use atexit to release LPJit singleton
+ at exit
+
+Valgrind will report some memory possibly lost because of this singleton
+(it's dynamically allocated when it is first accessed).
+
+Use atexit() to register a handler that releases this singleton.
+
+Signed-off-by: Icenowy Zheng <uwu@icenowy.me>
+Reviewed-by: Dave Airlie <airlied@redhat.com>
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/30216>
+(cherry picked from commit 5f22e152ade956fdce1b0cba8097d76aac085c92)
+Signed-off-by: Han Gao <gaohan@iscas.ac.cn>
+---
+ src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp b/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
+index 02ad4db7ed7..a1e37c970e3 100644
+--- a/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
++++ b/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
+@@ -3,6 +3,7 @@
+ #include "util/u_debug.h"
+ #include "util/os_time.h"
+ #include <mutex>
++#include <cstdlib>
+ #include "lp_bld.h"
+ #include "lp_bld_debug.h"
+ #include "lp_bld_init.h"
+@@ -131,6 +132,8 @@ namespace {
+ 
+ class LPJit;
+ 
++void lpjit_exit();
++
+ class LLVMEnsureMultithreaded {
+ public:
+    LLVMEnsureMultithreaded()
+@@ -300,11 +303,14 @@ private:
+    LPJit(const LPJit&) = delete;
+    LPJit& operator=(const LPJit&) = delete;
+ 
++   friend void lpjit_exit();
++
+    static void init_native_targets();
+    llvm::orc::JITTargetMachineBuilder create_jtdb();
+ 
+    static void init_lpjit() {
+       jit = new LPJit;
++      std::atexit(lpjit_exit);
+    }
+    static LPJit* jit;
+ 
+@@ -323,6 +329,11 @@ private:
+ 
+ LPJit* LPJit::jit = NULL;
+ 
++void lpjit_exit()
++{
++   delete LPJit::jit;
++}
++
+ LLVMErrorRef module_transform(void *Ctx, LLVMModuleRef mod) {
+    int64_t time_begin = 0;
+    if (::gallivm_debug & GALLIVM_DEBUG_PERF)
+-- 
+2.47.3
+

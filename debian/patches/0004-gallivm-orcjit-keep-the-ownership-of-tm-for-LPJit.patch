@@ -1,0 +1,45 @@
+From c5066d8f2097da5361a7b87badde34239f1390b2 Mon Sep 17 00:00:00 2001
+From: Icenowy Zheng <uwu@icenowy.me>
+Date: Wed, 17 Jul 2024 01:46:46 +0800
+Subject: [PATCH 04/90] gallivm: orcjit: keep the ownership of tm for LPJit
+
+The ownership of the TargetMachine object is released when LPJit
+singleton is constructed, leads to a slight memory loss detectable.
+
+Keep the ownership by saving the unique pointer as another class member
+named tm_unique.
+
+Signed-off-by: Icenowy Zheng <uwu@icenowy.me>
+Reviewed-by: Dave Airlie <airlied@redhat.com>
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/30216>
+(cherry picked from commit 3423e73cece2657e4e0008a60f2f9d0ade618fbe)
+Signed-off-by: Han Gao <gaohan@iscas.ac.cn>
+---
+ src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp b/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
+index 10dfbe351bd..02ad4db7ed7 100644
+--- a/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
++++ b/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
+@@ -309,6 +309,7 @@ private:
+    static LPJit* jit;
+ 
+    std::unique_ptr<llvm::orc::LLJIT> lljit;
++   std::unique_ptr<llvm::TargetMachine> tm_unique;
+    /* avoid name conflict */
+    unsigned jit_dylib_count;
+ 
+@@ -461,7 +462,8 @@ LPJit::LPJit() :jit_dylib_count(0) {
+ 
+    init_native_targets();
+    JITTargetMachineBuilder JTMB = create_jtdb();
+-   tm = wrap(ExitOnErr(JTMB.createTargetMachine()).release());
++   tm_unique = ExitOnErr(JTMB.createTargetMachine());
++   tm = wrap(tm_unique.get());
+ 
+    /* Create an LLJIT instance with an ObjectLinkingLayer (JITLINK)
+     * or RuntimeDyld as the base layer.
+-- 
+2.47.3
+

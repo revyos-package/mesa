@@ -1,0 +1,37 @@
+From 75278dae0eb24ecb1710c7d074227fd7c06faf13 Mon Sep 17 00:00:00 2001
+From: Brendan King <Brendan.King@imgtec.com>
+Date: Tue, 11 Mar 2014 09:06:37 +0000
+Subject: [PATCH 74/90] egl/x11: ignore X errors when destroying a DRI2
+ drawable
+
+Destruction of EGL surfaces will be deferred if the surface is still
+in use when eglDestroySurface is called. This may result in an
+X protocol BadDrawable error if the deferred destruction results in
+an associated DRI2 drawable being destroyed, after the X drawable has
+been destroyed.
+
+Signed-off-by: Randolph Sapp <rs@ti.com>
+---
+ src/egl/drivers/dri2/platform_x11.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/egl/drivers/dri2/platform_x11.c b/src/egl/drivers/dri2/platform_x11.c
+index fb2c7e7a43d..a509c4ffed2 100644
+--- a/src/egl/drivers/dri2/platform_x11.c
++++ b/src/egl/drivers/dri2/platform_x11.c
+@@ -432,7 +432,11 @@ dri2_x11_destroy_surface(_EGLDisplay *disp, _EGLSurface *surf)
+    dri2_dpy->core->destroyDrawable(dri2_surf->dri_drawable);
+ 
+    if (dri2_dpy->dri2) {
+-      xcb_dri2_destroy_drawable(dri2_dpy->conn, dri2_surf->drawable);
++      xcb_void_cookie_t cookie;
++
++      cookie = xcb_dri2_destroy_drawable_checked(dri2_dpy->conn,
++                                                 dri2_surf->drawable);
++      xcb_request_check(dri2_dpy->conn, cookie);
+    } else {
+       assert(dri2_dpy->swrast);
+       swrastDestroyDrawable(dri2_dpy, dri2_surf);
+-- 
+2.47.3
+
